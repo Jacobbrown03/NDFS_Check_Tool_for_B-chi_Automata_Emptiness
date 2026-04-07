@@ -1,0 +1,21 @@
+# Adjacency List (space-separated)
+0 1 5
+1 2
+2 3 4
+3 0 5
+4 5
+5 1
+
+# Accepting State (we want the system to visit “green” infinitely often)
+accept: 2
+
+# Initial State
+init: 0
+
+# Proposition Labelling (space‑separated list after the colon)
+0: red stop button_off
+1: red_yellow prepare button_off
+2: green go button_off
+3: yellow stop button_off
+4: yellow stop button_on
+5: red stop button_on pedestrian_walk
