@@ -1,14 +1,3 @@
-# This is where we save time
-# Instead of implementing a full generic LTL-to-Buchi translation,
-# we'll implement pattern-based Buchi generation for the formula 
-# forms we support
-# For example, if the negated formula is one of:
-# F p
-# G p
-# F (p && G(!q))
-# G(p -> F q)
-# We generate the automaton directly
-
 from itertools import combinations
 from src.ast_nodes import Atomic, Not, And, Or, X, F, G, Formula
 from src.structures import BuchiAutomaton
@@ -120,7 +109,7 @@ def _build_F_predicate_buchi(p: Formula, alphabet: set[frozenset[str]]) -> Buchi
     Accepting: q1
     """
     states = {"q0", "q1"}
-    transitions = {}
+    transitions = {} 
 
     for label in alphabet:
         if eval_state_predicate(p, set(label)):
@@ -297,4 +286,5 @@ def _build_F_and_X_buchi(p: Formula, q: Formula, alphabet: set[frozenset[str]]) 
         transitions[("dead", label)] = {"dead"}
 
     return BuchiAutomaton(states, "q0", {"q_accept"}, transitions, alphabet)
+        
 
