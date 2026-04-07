@@ -1,14 +1,3 @@
-# Simple classes for LTL formulas
-# Examples
-# Atomic
-# Not
-# And
-# Or
-# Next
-# Eventually
-# Globally
-# Implies
-
 from dataclasses import dataclass
 
 
@@ -82,4 +71,3 @@ class G(Formula):
 
     def to_string(self) -> str:
         return f"G {self.child.to_string()}"
-
