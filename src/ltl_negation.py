@@ -1,8 +1,3 @@
-# Handles:
-# Implication elimination
-# Pushing negation inward
-# Simplification
-
 from src.ast_nodes import Atomic, Not, And, Or, Implies, X, F, G, Formula
 
 
@@ -66,4 +61,3 @@ def push_negation(formula: Formula) -> Formula:
 def negate_formula(formula: Formula) -> Formula:
     no_imp = eliminate_implication(formula)
     return push_negation(Not(no_imp))
-
