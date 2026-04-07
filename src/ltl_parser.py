@@ -1,7 +1,7 @@
 # Parses formulas from the .txt file into ASTs
 # For a short project, a hand-writtten recursive descent parser is fine
 
-from src.ast_nodes import Atomic, Not, And, Or, Implies, X, F, G, U, Formula
+from src.ast_nodes import Atomic, Not, And, Or, Implies, X, F, G, Formula
 
 
 def tokenize(text: str) -> list[str]:
@@ -11,7 +11,6 @@ def tokenize(text: str) -> list[str]:
         .replace("&&", " && ")
         .replace("||", " || ")
         .replace("->", " -> ")
-        .replace("U", " U ")
     )
     # keep ! attached if it's standalone
     spaced = spaced.replace("!", " ! ")
@@ -49,14 +48,6 @@ class Parser:
             self.consume("->")
             right = self.parse_until()
             left = Implies(left, right)
-        return left
-
-    def parse_until(self) -> Formula:
-        left = self.parse_or()
-        while self.peek() == "U":
-            self.consume("U")
-            right = self.parse_or()
-            left = U(left, right)
         return left
 
     def parse_or(self) -> Formula:

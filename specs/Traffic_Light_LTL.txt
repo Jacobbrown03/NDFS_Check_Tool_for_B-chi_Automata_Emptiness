@@ -1,26 +1,24 @@
-# Green must be visited infinitely often
-G (F green)
-
-# Eventually the system reaches a point after which the light stays green forever.
-F (G green)
-
-# If the pedestrian button is on, eventually the pedestrian_walk proposition will be true
-G (button_on -> F pedestrian_walk)
-
-# If the button is off, the system will never display the pedestrian_walk proposition
+# Group A, G p: !G p -> F !p
+G button_off
+G (green || button_off)
+G (red && stop)
+G (!red -> go)
+G (!(green && pedestrian_walk))
 G (!button_on -> !pedestrian_walk)
 
-# If the light is currently green the next state will be yellow
-G (green -> X yellow)
+# Group B, F p: !F p -> G !p
+F pedestrian_walk
 
-# The light is never green while the pedestrian is walking
-G (!(green && pedestrian_walk))
+# Group C, G (F p): !G(F p) -> F (G !p)
+G (F green)
 
-# The button will be turned off sometime after the pedestrian starts walking
+# Group D, F (G p): !F (G p) -> G (F !p)
+F (G green)
+
+# Group E, G(p -> F q): !G (p -> F q) -> F (p && G !q)
+G (button_on -> F pedestrian_walk)
 G (pedestrian_walk -> F button_off)
 
-# The pedestrian does not walk until the light is red and the button has been pressed
-(!predestrian_walk) U (red && button_on)
-
-# Whenever the traffic-light is red, the very next state must be either red again or red_yellow
+# Group F, G (p -> X q): !G (p -> X p) -> F (p && X !q)
+G (green -> X yellow)
 G (red -> X (red || red_yellow))

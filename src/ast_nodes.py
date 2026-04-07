@@ -7,7 +7,6 @@
 # Next
 # Eventually
 # Globally
-# Until
 # Implies
 
 from dataclasses import dataclass
@@ -84,11 +83,3 @@ class G(Formula):
     def to_string(self) -> str:
         return f"G {self.child.to_string()}"
 
-
-@dataclass(frozen=True)
-class U(Formula):
-    left: Formula
-    right: Formula
-
-    def to_string(self) -> str:
-        return f"({self.left.to_string()} U {self.right.to_string()})"

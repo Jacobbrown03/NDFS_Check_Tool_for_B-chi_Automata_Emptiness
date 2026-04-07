@@ -44,7 +44,7 @@ class BuchiAutomaton:
 @dataclass
 class ProductAutomaton:
     states: Set[ProductState]
-    initial_state: ProductState
+    initial_state: Set[ProductState]
     accepting_states: Set[ProductState]
     transitions: Dict[ProductState, Set[ProductState]]
 

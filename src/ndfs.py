@@ -56,8 +56,10 @@ def run_ndfs(product: ProductAutomaton) -> NDFSResult:
 
         return False
 
-    if product.initial_state in product.states:
-        blue_dfs(product.initial_state, None)
+    for init in product.initial_states:
+        if init not in visited_blue:
+            if blue_dfs(init, None):
+                break
 
     return NDFSResult(
         accepting_cycle_found=cycle_found["value"],

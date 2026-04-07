@@ -3,7 +3,7 @@
 # Pushing negation inward
 # Simplification
 
-from src.ast_nodes import Atomic, Not, And, Or, Implies, X, F, G, U, Formula
+from src.ast_nodes import Atomic, Not, And, Or, Implies, X, F, G, Formula
 
 
 def eliminate_implication(formula: Formula) -> Formula:
@@ -23,8 +23,6 @@ def eliminate_implication(formula: Formula) -> Formula:
         return F(eliminate_implication(formula.child))
     if isinstance(formula, G):
         return G(eliminate_implication(formula.child))
-    if isinstance(formula, U):
-        return U(eliminate_implication(formula.left), eliminate_implication(formula.right))
     raise NotImplementedError(f"Unsupported formula type: {type(formula)}")
 
 
@@ -49,8 +47,6 @@ def push_negation(formula: Formula) -> Formula:
             return G(push_negation(Not(child.child)))
         if isinstance(child, G):
             return F(push_negation(Not(child.child)))
-        if isinstance(child, U):
-            raise NotImplementedError("Negation of Until is not yet supported in starter version")
         raise NotImplementedError(f"Unsupported negation child: {type(child)}")
 
     if isinstance(formula, And):
@@ -63,8 +59,6 @@ def push_negation(formula: Formula) -> Formula:
         return F(push_negation(formula.child))
     if isinstance(formula, G):
         return G(push_negation(formula.child))
-    if isinstance(formula, U):
-        return U(push_negation(formula.left), push_negation(formula.right))
 
     raise NotImplementedError(f"Unsupported formula type: {type(formula)}")
 
