@@ -1,16 +1,3 @@
-# This is my command-line entry point
-# It should do this:
-# read sys.argv
-# load the transition system
-# load all LTL formulas from the spec file
-# for each formula:
-# parse
-# negate
-# build buchi automaton
-# build product
-# run NDFS
-# print result
-
 import sys
 from src.model_parser import load_model
 from src.ltl_parser import load_formulas
@@ -18,8 +5,7 @@ from src.ltl_negation import negate_formula
 from src.buchi_builder import build_buchi_for_negated_formula
 from src.product_builder import build_product
 from src.ndfs import run_ndfs
-from src.printer import print_result
-
+from src.printer import print_result, print_TS
 
 def main() -> None:
     if len(sys.argv) != 3:
@@ -31,6 +17,8 @@ def main() -> None:
 
     ts = load_model(model_file)
     formulas = load_formulas(ltl_file)
+    
+    print_TS(ts)
 
     for idx, formula in enumerate(formulas, start=1):
         print("=" * 70)
