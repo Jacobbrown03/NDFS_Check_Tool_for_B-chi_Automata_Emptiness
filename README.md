@@ -2,4 +2,4 @@
 The project implements NDFS-Check, a command-line tool that reads a finite-state transition system from a simple text file, builds the product with a Büchi automaton generated from an LTL formula, and applies the nested depth-first search algorithm to decide emptiness.
 
 Example Run:
->>> python NDFS_Check.py "Traffic_Light_Graph.txt" "Traffic_LTL.txt"
+python NDFS_Check.py "Traffic_Light_Graph.txt" "Traffic_LTL.txt"
