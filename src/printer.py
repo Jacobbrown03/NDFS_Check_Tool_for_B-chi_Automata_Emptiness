@@ -1,6 +1,5 @@
 from src.ast_nodes import Formula
 from src.structures import BuchiAutomaton, ProductAutomaton, NDFSResult, TransitionSystem
-#from typing import List
 
 def print_result(
     formula: Formula,
@@ -10,52 +9,54 @@ def print_result(
     result: NDFSResult,
 ) -> None:
     """
-    Print a summary of the model‑checking run.
-
-    * ``result.accepting_cycle_found`` tells us whether the product
-      automaton contains an accepting SCC.  In the NDFS algorithm this
-      means the language of the Büchi automaton (built from the **negated**
-      LTL formula) is **non‑empty**.
-    * If the language is non‑empty, the original formula does **not**
-      hold on the transition system; otherwise it **holds**.
-
-    The output therefore reports:
-        – emptiness of the product (EMPTY / NON‑EMPTY)
-        – the truth value of the original formula
+    Print a concise, human-readable summay of a model-checking run.
+    
+    Parameters
+    ----------
+    formula : Formula
+        The original LTL formula supplied by the user.
+    negated : Formula
+        The negated version of ``formula`` (in NNF) that was used to build ``ba``.
+    ba : BuchiAutomaton
+        Buchi Automaton that recognises the language of ``negated``.
+    product : ProductAutomaton
+        Synchronous product of the Transition System and ``ba``.
+    result : NDFSResult
+        Outcome of the NDFS emptiness check on ``product``
     """
-    # -----------------------------------------------------------------
-    # 3️⃣  Additional information (kept from the original printer)
-    # -----------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # [1] General Statistics
+    # ---------------------------------------------------------------------
     print(f"Original LTL          : {formula.to_string()}")
     print(f"Negated LTL           : {negated.to_string()}")
     print(f"Büchi states          : {len(ba.states)}")
     print(f"Product states        : {len(product.states)}")
     print(f"Accepting product states: {len(product.accepting_states)}")
     
-    
-    # -----------------------------------------------------------------
-    # 1️⃣  Emptiness information
-    # -----------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # [2] Emptiness Information
+    # ---------------------------------------------------------------------
     emptiness = not result.accepting_cycle_found
-    print("Emptiness of product automaton :", "EMPTY" if emptiness else "NON‑EMPTY")
+    print(
+        "Emptiness of product automaton :",
+        "EMPTY" if emptiness else "NON-EMPTY"
+    )
 
-    # -----------------------------------------------------------------
-    # 2️⃣  Original‑formula truth value
-    # -----------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # [3] Truth value of the original formula
+    # ---------------------------------------------------------------------
     if emptiness:
-        # The product is empty ⇒ the negated formula has no model
-        # ⇒ the original formula is true on the TS.
+        # No accepting SCC -> the negated formula has no model -> original holds
         print("Original formula :", "HOLDS")
     else:
-        # Non‑empty product ⇒ there is a counter‑example
+        # An accepting SCC provides a counter-example -> original does not hold
         print("Original formula :", "DOES NOT HOLD")
 
 
-    # -----------------------------------------------------------------
-    # 4️⃣  Counter‑example (if one exists)
-    # -----------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # [4] Counter-example (witness) when the product is non-empty
+    # ---------------------------------------------------------------------
     if not emptiness:
-        # there is an accepting SCC → we have a witness
         if result.witness_prefix:
             print("Prefix:")
             print("  " + " -> ".join(str(x) for x in result.witness_prefix))
@@ -66,6 +67,7 @@ def print_result(
     
     
 def print_TS(ts: TransitionSystem) -> None:
+    """Print the Transition System in a readable, section-wise format."""
     print("# Adjacency List")
     for state in sorted(ts.states):
         print(f"{state} -> ", end="")
@@ -82,12 +84,19 @@ def print_TS(ts: TransitionSystem) -> None:
 
     
 def print_buchi(ba: BuchiAutomaton) -> None:
+    """
+    Print a Buchi Automaton:
+        states, initial/accepting states, alphabet, transitions.
+    """
     print("# Buchi Automaton")
     print("States:"," ".join(sorted(ba.states)))
     print("Initial State:", ba.initial_state)
     print("Accepting States:"," ".join(sorted(ba.accepting_states)))
+    
+    # Render the alphabet as a set of propositions for each symbol.
     alphabet_str = " ".join(
-        "{" + ", ".join(sorted(val)) + "}" if val else "{}" for val in sorted(ba.alphabet)
+        "{" + ", ".join(sorted(val)) + "}" if val else "{}"
+        for val in sorted(ba.alphabet)
     )
     print("Alphabet:", alphabet_str)
     print("Transitions")
@@ -99,6 +108,7 @@ def print_buchi(ba: BuchiAutomaton) -> None:
     
     
 def print_product(product: ProductAutomaton) -> None:
+    """Print a product automaton in a compact adjacency-list representation."""
     print("# Product Automaton")
     print("States:", " ".join(sorted(product.states)))
     print("Initial states:", " ".join(sorted(product.initial_states)))
