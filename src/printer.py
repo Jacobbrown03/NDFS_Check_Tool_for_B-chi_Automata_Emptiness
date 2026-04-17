@@ -73,8 +73,6 @@ def print_TS(ts: TransitionSystem) -> None:
         print(f"{state} -> ", end="")
         print(*sorted(ts.transitions[state]))
         
-    print("\n# Accepting State\naccept:", end=" ")
-    print(*ts.accepting_states)
     print("\n# Initial State\ninit:", end=" ")
     print(ts.initial_state)
     print("\n# Proposition Labelling")
