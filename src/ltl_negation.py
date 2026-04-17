@@ -1,37 +1,37 @@
 """ltl_negation.py
 
-Utility functions that transform an LTL formula into its **negation in
-Negation Normal Form (NNF)**. The transformation is performed in two steps:
-
-1. **Eliminate Implication** - Replace every ``A -> B`` with ``!A || B``.
-2. **Push Negations** - Move ``!`` inward using Demorgan laws and the
-   dualities of the temporal operators (``X, F, G``).
-   
-The result of the ``negate_formula`` is a formula that is logically
-equivalent to the original formula's negation and contains only the
-connectives ``!, &&, ||, X, F, G`` with ``!`` applied directly to
-atomic propositions.
+Utility functions that transform an LTL formula into its negation in
+Negation Normal Form (NNF).
 """
 
-from src.ast_nodes import Atomic, Not, And, Or, Implies, X, F, G, Formula
+from src.ast_nodes import (
+    Atomic, 
+    Implies, 
+    Or, And, 
+    Until, Release, WeakUntil,
+    Not, X, F, G,
+    BoolConst,
+    Formula)
 
 def eliminate_implication(formula: Formula) -> Formula:
     """
-    Recursively replace every implication in formula. The function returns
-    a new formula tree that no longer contains ``Implies`` nodes.
+    Recursively replace every implication in formula.
     
     Parameters
     ----------
     formula: Formula
-        The (possibly nested) LTL formula to transform
+        The LTL formula to transform
         
     Returns
     -------
     Formula
-        An equivalent formula without ``Implies``.
+        An equivalent formula without (->).
     """
-    # Base Case - Atomic Propositions are unchanged
+    # Base Cases - Atomic Propositions and Boolean constants are unchanged
     if isinstance(formula, Atomic):
+        return formula
+    
+    if isinstance(formula, BoolConst):
         return formula
     
     # Negation propagates unchanged; only its child is processed
@@ -50,7 +50,7 @@ def eliminate_implication(formula: Formula) -> Formula:
             eliminate_implication(formula.right),
         )
     
-    # Implication Case - Replace ``!left || right``.
+    # Implication Case - Replace with '!left || right'.
     if isinstance(formula, Implies):
         return Or(
             Not(eliminate_implication(formula.left)),
@@ -65,6 +65,23 @@ def eliminate_implication(formula: Formula) -> Formula:
     if isinstance(formula, G):
         return G(eliminate_implication(formula.child))
     
+    # Binary Temporal Operators - recurse on both sides
+    if isinstance(formula, Until):
+        return Until(
+            eliminate_implication(formula.left),
+            eliminate_implication(formula.right),
+        )
+    if isinstance(formula, Release):
+        return Release(
+            eliminate_implication(formula.left),
+            eliminate_implication(formula.right),
+        )
+    if isinstance(formula, WeakUntil):
+        return WeakUntil(
+            eliminate_implication(formula.left),
+            eliminate_implication(formula.right),
+        )
+    
     # Anything else is not part of the supported AST.
     raise NotImplementedError(f"Unsupported formula type: {type(formula)}")
 
@@ -73,22 +90,20 @@ def push_negation(formula: Formula) -> Formula:
     Push a leading negation inward until it only appears in front of
     atomic propositions. This yields NNF.
     
-    The function expects that the input formula **does not contain
-    ``Implies``** - that transformation should be performed first by
-    :func:`eliminate_implication`.
-    
     Parameters
     ----------
     formula : Formula
-        A formula possibly containing a top-level ``Not`` node.
+        A formula possibly containing a top-level Not node.
         
     Returns
     -------
     Formula
         An equivalent formula in NNF.
     """
-    # Atomic Propositions are already in NNF.
+    # Atomic Propositions and Boolean constants are already in NNF.
     if isinstance(formula, Atomic):
+        return formula
+    if isinstance(formula, BoolConst):
         return formula
 
     # When we encounter a negation we apply the appropriate De Morgan
@@ -96,11 +111,11 @@ def push_negation(formula: Formula) -> Formula:
     if isinstance(formula, Not):
         child = formula.child
 
-        # Negation of an Atomic Proposition stays as ``Not(atom)``
+        # Negation of an Atomic Proposition stays as Not(Atomic)
         if isinstance(child, Atomic):
             return formula
         
-        # Double negation cancels out ``!!q`` -> ``q``
+        # Double negation cancels out
         if isinstance(child, Not):
             return push_negation(child.child)
         
@@ -129,6 +144,31 @@ def push_negation(formula: Formula) -> Formula:
             # !G q -> F !q
             return F(push_negation(Not(child.child)))
         
+        # Binary Temporal Operators
+        if isinstance(child, Until):
+            # !(a U b) -> (!a) R (!b)
+            return Release(
+                push_negation(Not(child.left)),
+                push_negation(Not(child.right)),
+            )
+        if isinstance(child, Release):
+            # !(a R b) -> (!a) U (!b)
+            return Until(
+                push_negation(Not(child.left)),
+                push_negation(Not(child.right)),
+            )
+        if isinstance(child, WeakUntil):
+            # Weak-until is defined as (a U b) || G a.
+            # ! (a W b) -> !(a U b) || !G a
+            #           -> (!a) R (!b) && F (!a)
+            return And(
+                Release(
+                    push_negation(Not(child.left)),
+                    push_negation(Not(child.right)),
+                ),
+                F(push_negation(Not(child.left))),
+            )
+        
         # Any other construct under a negation is unsupported.
         raise NotImplementedError(f"Unsupported negation child: {type(child)}")
 
@@ -150,17 +190,30 @@ def push_negation(formula: Formula) -> Formula:
     if isinstance(formula, G):
         return G(push_negation(formula.child))
 
+    # Binary Temporal Operators
+    if isinstance(formula, Until):
+        return Until(
+            push_negation(formula.left),
+            push_negation(formula.right),
+        )
+    if isinstance(formula, Release):
+        return Release(
+            push_negation(formula.left),
+            push_negation(formula.right),
+        )
+    if isinstance(formula, WeakUntil):
+        return WeakUntil(
+            push_negation(formula.left),
+            push_negation(formula.right),
+        )
+        
     # Unexpected Node Type.
     raise NotImplementedError(f"Unsupported formula type: {type(formula)}")
 
 
 def negate_formula(formula: Formula) -> Formula:
     """
-    Public helper that returns the negation of *formula* in NNF.
-    
-    The process is:
-    1. Remove all implications(``->``) -> ``eliminate_implication``.
-    2. Apply a top-level negation and push it inward -> ``push_negation``.
+    Helper function that returns the negation of formula in NNF.
     
     Parameters
     ----------
@@ -170,7 +223,7 @@ def negate_formula(formula: Formula) -> Formula:
     Returns
     -------
     Formula
-        An equivalent formula representing ``!formula`` in NNF.
+        An equivalent formula representing '!formula' in NNF.
     """
     no_imp = eliminate_implication(formula)
     return push_negation(Not(no_imp))
