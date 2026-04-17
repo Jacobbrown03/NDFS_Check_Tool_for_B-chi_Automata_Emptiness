@@ -35,8 +35,7 @@ class TransitionSystem:
     transitions: Dict[str, Set[str]]     # adjacency list: src → {dst_1, …}
     initial_state: str                   # start state for model checking
     labels: Dict[str, Set[str]]          # state → set of atomic propositions true there
-    accepting_states: Set[str]           # states that are considered “final” (used for
-                                         # Büchi acceptance when intersected)
+
 
     def successors(self, state: str) -> Set[str]:
         """Return the set of direct successors of *state* (empty set if none)."""
@@ -53,11 +52,11 @@ class TransitionSystem:
 class BuchiAutomaton:
     """Nondeterministic Büchi automaton over a finite alphabet of
     proposition subsets."""
-    states: Set[str]                                          # automaton states
-    initial_state: str                                        # unique start state
-    accepting_states: Set[str]                                 # set of accepting states
-    transitions: Dict[Tuple[str, LabelSet], Set[str]]          # (src, label) → {dst,…}
-    alphabet: Set[LabelSet] = field(default_factory=set)      # all possible labels
+    states: Set[str]                                        # automaton states
+    initial_state: str                                      # unique start state
+    accepting_states: Set[str]                              # set of accepting states
+    transitions: Dict[Tuple[str, LabelSet], Set[str]]       # (src, label) → {dst,…}
+    alphabet: Set[LabelSet] = field(default_factory=set)    # all possible labels
 
     def next_states(self, state: str, label: Set[str]) -> Set[str]:
         """
@@ -75,11 +74,11 @@ class BuchiAutomaton:
 class ProductAutomaton:
     """Synchronous product of a TransitionSystem and a BuchiAutomaton.
     Each product state couples a concrete TS state with a Büchi state."""
-    states: Set[ProductState]                              # reachable pairs (ts, ba)
-    initial_states: Set[ProductState]                      # possibly multiple because the BA may
+    states: Set[ProductState]                               # reachable pairs (ts, ba)
+    initial_states: Set[ProductState]                       # possibly multiple because the BA may
                                                             # have several successors on the initial label
-    accepting_states: Set[ProductState]                    # product states whose BA component is accepting
-    transitions: Dict[ProductState, Set[ProductState]]     # adjacency list in the product
+    accepting_states: Set[ProductState]                     # product states whose BA component is accepting
+    transitions: Dict[ProductState, Set[ProductState]]      # adjacency list in the product
 
     def successors(self, state: ProductState) -> Set[ProductState]:
         """Return the set of successors of *state* in the product graph."""
