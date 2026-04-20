@@ -10,8 +10,6 @@ progress of the Buchi Automaton that recognises the negated LTL formula.
 Only reachable product states are generated.
 """
 
-from __future__ import annotations
-
 from collections import deque
 from typing import Dict, Set, Tuple, FrozenSet
 
@@ -61,47 +59,6 @@ def label_for_ba(ts_label: Set[str], ba: BuchiAutomaton) -> FrozenSet[str]:
     """
     ap_set = _ap_set_from_alphabet(ba.alphabet)
     return frozenset(p for p in ts_label if p in ap_set)
-
-
-def debug_initial_ba(ts: TransitionSystem, ba: BuchiAutomaton) -> Set[str]:
-    """
-    Small debugging routine - prints the very first product step.
-    
-    It shows how the initial TS label is projected, which BA states are
-    reachable from the BA initial state, and the outgoing BA edges that
-    match the projected label.
-    
-    Returns
-    -------
-    set[str]:
-        The set of BA states reachable after consuming the initial TS label.
-    """
-    raw_label = ts.label_of(ts.initial_state)
-    proj_label = label_for_ba(raw_label, ba)
-
-    print("\n=== DEBUG: initial BA step ===")
-    print(f"TS initial state      : {ts.initial_state}")
-    print(f"Raw TS label          : {raw_label}")
-    print(f"Projected label       : {proj_label}")
-
-    init = ba.initial_state
-    print(f"BA initial state      : {init}")
-
-    outgoing = [
-        (dst, lbl) for (src, lbl), dsts in ba.transitions.items()
-        if src == init for dst in dsts
-    ]
-    if not outgoing:
-        print("No outgoing edges - check the BA builder!")
-    else:
-        print("Outgoing edges (src, label) → dst:")
-        for dst, lbl in outgoing:
-            print(f"   ({init}, {set(lbl)}) → {dst}")
-
-    result = ba.next_states(init, proj_label)
-    print(f"Result of next_states : {result}")
-    print("=== END DEBUG ===\n")
-    return result
 
 # -------------------------------------------------------------------------
 # Core Product Construction
