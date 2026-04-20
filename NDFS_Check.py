@@ -7,7 +7,7 @@ from src.ltl_negation import negate_formula
 from src.buchi_builder import build_buchi_for_negated_formula
 from src.product_builder import build_product
 from src.ndfs import run_ndfs
-from src.printer import print_result, print_TS
+from src.printer import print_result, print_TS, print_product
 
 
 def main() -> None:
@@ -63,6 +63,7 @@ def main() -> None:
             #     runs correspond to counterexamples.
             # -------------------------------------------------------------
             product = build_product(TS, ba)
+            print_product(product)
             
             # -------------------------------------------------------------
             # (d) Run the Nested Depth-First Search algorithm on the product.
