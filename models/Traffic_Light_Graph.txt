@@ -6,9 +6,6 @@
 4 5
 5 1
 
-# Accepting State (we want the system to visit “green” infinitely often)
-accept: 2
-
 # Initial State
 init: 0
 
