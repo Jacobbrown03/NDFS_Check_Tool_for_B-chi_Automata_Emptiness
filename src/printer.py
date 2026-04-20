@@ -108,12 +108,21 @@ def print_buchi(ba: BuchiAutomaton) -> None:
 def print_product(product: ProductAutomaton) -> None:
     """Print a product automaton in a compact adjacency-list representation."""
     print("# Product Automaton")
-    print("States:", " ".join(sorted(product.states)))
-    print("Initial states:", " ".join(sorted(product.initial_states)))
-    print("Accepting states:", " ".join(sorted(product.accepting_states)))
+    print("States:")
+    for state in sorted(product.states):
+        print(f"\t{state}")
+    print("Initial states:")
+    for state in sorted(product.initial_states):
+        print(f"\t{state}")
+    print("Accepting states:")
+    for state in sorted(product.accepting_states):
+        print(f"\t{state}")
 
     print("Transitions:")
     for src, dsts in product.transitions.items():
-        dst_str = " ".join(sorted(dsts))
-        print(f"  {src} -> {dst_str}")
+        #dst_str = " ".join(sorted(dsts))
+        print(f"  {src} -> ")
+        for state in dsts:
+            print(f"\t{state}", end=" ")
+        print()
     print()
