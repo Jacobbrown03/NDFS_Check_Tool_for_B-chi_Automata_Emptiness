@@ -1,5 +1,4 @@
-from __future__ import annotations
-from typing import List, Set, Dict, Tuple
+from typing import List, Set, Dict
 from src.structures import ProductAutomaton, ProductState, NDFSResult
 
 
@@ -10,7 +9,7 @@ def run_ndfs(product: ProductAutomaton) -> NDFSResult:
     
     The algorithm consists of two DFS phases:
     * **Blue (outer) DFS** - Explores the whole reachable part of the product,
-      building a recursion stack ``blu_stack`` that represents the current
+      building a recursion stack ``blue_stack`` that represents the current
       search path.
     * **Red (inner) DFS** - Triggered only when the blue DFS backs-up from an
       accepting state. It searches *inside* the sub-graph induced by the
@@ -36,7 +35,7 @@ def run_ndfs(product: ProductAutomaton) -> NDFSResult:
     # ---------------------------------------------------------------------
     def prefix_to(state: ProductState) -> List[ProductState]:
         """
-        Return the simple path from the rot of the current blue stack to *state*
+        Return the simple path from the root of the current blue stack to *state*
         (inclusive). The ``parent_blue`` map stores each node's predecessor,
         allowing us to walk backwards and then reverse the list.
         """
