@@ -13,8 +13,8 @@ from src.printer import print_result, print_TS, print_product
 def main() -> None:
     """
     Expects exactly two command-line arguments:
-    1. Path to amodel file describing the transition system.
-    2. Path to a file containing one ore more LTL formulas
+    1. Path to a model file describing the transition system.
+    2. Path to a file containing one or more LTL formulas
     The script checks each formula using the NDFS algorithm 
     and prints the outcome.
     """
@@ -30,11 +30,11 @@ def main() -> None:
     # ---------------------------------------------------------------------
     # [1] Load the Transition System (TS) and the list of LTL formulas
     # ---------------------------------------------------------------------
-    TS = load_model(model_file)
+    ts = load_model(model_file)
     formulas = load_formulas(ltl_file)
     
     # Show the loaded TS for debugging / information purposes
-    print_TS(TS)
+    print_TS(ts)
 
     # ---------------------------------------------------------------------
     # [2] Process each LTL formula independently
@@ -62,8 +62,8 @@ def main() -> None:
             #     This yields a combined transition system whose accepting
             #     runs correspond to counterexamples.
             # -------------------------------------------------------------
-            product = build_product(TS, ba)
-            print_product(product)
+            product = build_product(ts, ba)
+            #print_product(product)
             
             # -------------------------------------------------------------
             # (d) Run the Nested Depth-First Search algorithm on the product.
@@ -78,6 +78,7 @@ def main() -> None:
             #     Buchi Automaton, the product, and the NDFS outcome.
             # -------------------------------------------------------------
             print_result(formula, neg, ba, product, result)
+            print()
             
         # -----------------------------------------------------------------
         # Handle expected "not implemented" placeholders gracefully
@@ -90,7 +91,7 @@ def main() -> None:
         # not abort the whole script.
         # -----------------------------------------------------------------
         except Exception as exc:
-            print(f"Error while processing formula {idx}: {exc}")
+            print(f"Error while processing formula {idx} ({formula.to_string()}): {exc}")
 
 # -------------------------------------------------------------------------
 # Run the program whenthe file is executed as a script.

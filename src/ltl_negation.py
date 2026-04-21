@@ -107,13 +107,16 @@ def push_negation(formula: Formula) -> Formula:
         return formula
 
     # When we encounter a negation we apply the appropriate De Morgan
-    # or temporal dualit yrule.
+    # or temporal duality rule.
     if isinstance(formula, Not):
         child = formula.child
 
         # Negation of an Atomic Proposition stays as Not(Atomic)
         if isinstance(child, Atomic):
             return formula
+        
+        if isinstance(child, BoolConst):
+            return BoolConst(not child.value)
         
         # Double negation cancels out
         if isinstance(child, Not):
@@ -159,7 +162,7 @@ def push_negation(formula: Formula) -> Formula:
             )
         if isinstance(child, WeakUntil):
             # Weak-until is defined as (a U b) || G a.
-            # ! (a W b) -> !(a U b) || !G a
+            # ! (a W b) -> !(a U b) && !G a
             #           -> (!a) R (!b) && F (!a)
             return And(
                 Release(

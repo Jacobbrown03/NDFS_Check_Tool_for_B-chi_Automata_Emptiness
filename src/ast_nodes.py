@@ -120,6 +120,7 @@ class WeakUntil(Formula):
     # Temporal Weak Until
     left: Formula 
     right: Formula
+    
     def to_string(self) -> str:
         return f"({self.left.to_string()} W {self.right.to_string()})"
 

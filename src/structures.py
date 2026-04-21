@@ -14,7 +14,7 @@ pipeline.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Set, Tuple
 
 # ----------------------------------------------------------------------
 # Basic type aliases
@@ -94,8 +94,7 @@ class NDFSResult:
     Attributes
     ----------
     accepting_cycle_found : bool
-        ``True`` if an accepting strongly‑connected component (hence a
-        counter‑example) was discovered.
+        ``True`` if an accepting cycle was discovered.
     witness_prefix : List[ProductState]
         The prefix from an initial product state up to the first state of the
         accepting cycle.
@@ -104,12 +103,8 @@ class NDFSResult:
         cycle is *not* duplicated at the end.
     visited_blue : Set[ProductState]
         All states visited during the outer (blue) DFS.
-    visited_red : Set[ProductState]
-        All states visited during the inner (red) DFS; kept empty globally
-        because each red search uses its own local set.
     """
     accepting_cycle_found: bool
     witness_prefix: List[ProductState] = field(default_factory=list)
     witness_cycle: List[ProductState] = field(default_factory=list)
     visited_blue: Set[ProductState] = field(default_factory=set)
-    visited_red: Set[ProductState] = field(default_factory=set)

@@ -25,6 +25,16 @@ def powerset(items: set[str]) -> list[frozenset[str]]:
     The result is a list of *frozenset*, each representing one possible
     label (i.e. a subset of atomic propositions) that can appear on a
     transition system state.
+    
+    Parameters
+    ----------
+    items: set[str]
+        The set of atomic proposition names for which to compute the power-set.
+        
+    Returns
+    -------
+    list[frozenset[str]]
+        The list of all possible subsets of the input set.
     """
     values = list(items)
     return [
@@ -37,6 +47,16 @@ def collect_atomic_props(formula: Formula) -> set[str]:
     """
     Recursively collect all atomic proposition names occuring in *formula*.
     Returns a set of strings (the proposition identifiers).
+    
+    Parameters
+    ----------
+    formula: Formula
+        The LTL formula from which to collect atomic propositions.
+        
+    Returns
+    -------
+    set[str]
+        The set of atomic proposition names that appear anywhere in the formula.
     """
     # Return Atomic Propositions
     if isinstance(formula, Atomic):
@@ -50,7 +70,7 @@ def collect_atomic_props(formula: Formula) -> set[str]:
     # Binary Operators - Union the names from both sides
     if isinstance(formula, (And, Or, Until, Release, WeakUntil)):
         return collect_atomic_props(formula.left) | collect_atomic_props(formula.right)
-    # Formula does not ontain any Atomic Propositions
+    # Formula does not contain any Atomic Propositions
     return set()
 
 def eval_state_predicate(formula: Formula, label: set[str]) -> bool:
@@ -58,6 +78,19 @@ def eval_state_predicate(formula: Formula, label: set[str]) -> bool:
     Evaluate a *pure state predicate* on a single TS label.
     Supported constructs are Atomic, Not, And, Or. Implication should have
     been eliminated earlier in the pipeline
+    
+    Parameters
+    ----------
+    formula: Formula
+        The state predicate to evaluate.
+    label: set[str]
+        The TS label on which to evaluate the predicate.
+
+    Returns
+    -------
+    bool
+        The result of the evaluation.
+
     """
     if isinstance(formula, Atomic):
         return formula.name in label
@@ -92,6 +125,19 @@ def build_buchi_for_negated_formula(formula: Formula) -> BuchiAutomaton:
       - F(p && X(q))
 
     where p and q are state predicates.
+    
+    Parameters
+    ----------
+    formula: Formula
+        The LTL formula for which we want to build a Büchi automaton.
+        The formula is expected to be in the form of our AST, and should
+        have had implications eliminated and negations pushed down to
+        the atomic level.
+    
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton.
     """
     # Determine the alphabet from the Atomic Proposition that appear.
     aps = collect_atomic_props(formula)
@@ -186,6 +232,18 @@ def _build_F_predicate_buchi(p: Formula,
     
     Accepting State:
         q1
+        
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should eventually hold.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for F p.
     """
     states = {"q0", "q1"}
     transitions = {} 
@@ -213,6 +271,19 @@ def _build_G_predicate_buchi(p: Formula,
     
     Accepting State:
         q0
+        
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should hold globally.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for G p.    
+    
     """
     states = {"q0", "dead"}
     transitions = {}
@@ -242,6 +313,18 @@ def _build_X_predicate_buchi(p: Formula,
 
     Accepting State:
         q_accept
+    
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should hold in the next state.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for X p.
     """
     states = {"q0", "q1", "q_accept", "dead"}
     transitions = {}
@@ -276,6 +359,18 @@ def _build_FG_buchi(p: Formula,
         
     Accepting State:
         q1
+        
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should eventually hold.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for F(G p).
     """
     states = {"q0", "q1", "dead"}
     transitions = {}
@@ -301,18 +396,30 @@ def _build_GF_buchi(p: Formula,
     Büchi Automaton for the pattern G(F p):
     
     States: 
-        q0 - We are waiting for the next occurrnce of p
+        q0 - We are waiting for the next occurrence of p
         q1 - We have just seen p
         
     Accepting State:
         q1
+        
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should hold infinitely often.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for G(F p).
     """
     states = {"q0", "q1"}
     transitions = {}
 
     for label in alphabet:
         if eval_state_predicate(p, set(label)):
-            # Seeing p moves us to q1; q1 stats on any further lable
+            # Seeing p moves us to q1; q1 stays on any further label
             transitions[("q0", label)] = {"q1"}
             transitions[("q1", label)] = {"q1"}
         else:
@@ -335,6 +442,20 @@ def _build_F_and_G_buchi(p: Formula,
     
     Accepting State:
         q1
+        
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should eventually hold.
+    q: Formula
+        The state predicate that should hold globally after the first one is seen.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for F(p && G(q)).
     """
     states = {"q0", "q1", "dead"}
     transitions = {}
@@ -372,6 +493,20 @@ def _build_F_and_X_buchi(p: Formula,
 
     Accepting State:
         q_accept
+        
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should eventually hold.
+    q: Formula
+        The state predicate that should hold in the next state after p is seen.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for F(p && X(q)).
     """
     states = {"q0", "q1", "q_accept", "dead"}
     transitions = {}
@@ -394,7 +529,7 @@ def _build_F_and_X_buchi(p: Formula,
         else:
             # Violation of q
             transitions[("q1", label)] = {"dead"}
-        # If in accpt or dead, we stay there
+        # If in accept or dead, we stay there
         transitions[("q_accept", label)] = {"q_accept"}
         transitions[("dead", label)] = {"dead"}
 
@@ -411,9 +546,19 @@ def _build_U_buchi(p: Formula, q: Formula,
         - If p ever fails before q, we go to a dead sink.
     
     States:
-        q0 – waiting (p must hold)
-        q_accept – accepting sink (q has been seen)
-        dead – violation of p before q
+        q0 - waiting (p must hold)
+        q_accept - accepting sink (q has been seen)
+        dead - violation of p before q
+        
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should hold until q holds.
+    q: Formula
+        The state predicate that should eventually hold, allowing us to 
+        move to the accepting state.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
     """
     states = {"q0", "q_accept", "dead"}
     transitions = {}
@@ -446,6 +591,26 @@ def _build_R_buchi(p: Formula, q: Formula,
     Dual of Until:  ¬(p U ¬q) ≡ (p R q)
     Implementation follows the classic tableau:
         - q must hold forever *or* p may hold until q stops holding.
+        
+    States:
+        q0 - waiting (q must hold, p may hold)
+        q0 is accepting because if q holds forever we are done.
+        dead - violation of q before p can save us
+    
+    Parameters
+    ----------
+    p: Formula
+        The state predicate that should hold until q fails.
+    q: Formula
+        The state predicate that should eventually hold, allowing us to 
+        move to the accepting state.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+    
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for p R q.
     """
     states = {"q0", "dead"}          # q0 is accepting
     transitions = {}
@@ -475,6 +640,21 @@ def _build_W_buchi(a: Formula, b: Formula,
     It is the nondeterministic union of the U‑automaton and the G‑automaton.
     The union is obtained by adding a fresh initial state that nondeterministically
     chooses which component to follow.
+    
+    Parameters
+    ----------
+    a: Formula
+        The state predicate that should hold until b holds (if it ever does).
+    b: Formula
+        The state predicate that should eventually hold, allowing us to 
+        move to the accepting state.
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+        
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for a W b.
     """
     # Build the two component automata first
     u_auto = _build_U_buchi(a, b, alphabet)
@@ -483,7 +663,7 @@ def _build_W_buchi(a: Formula, b: Formula,
     # Fresh initial state
     init = "init"
     states = {init} | u_auto.states | g_auto.states
-    accepting = u_auto.accepting | g_auto.accepting
+    accepting = u_auto.accepting_states | g_auto.accepting_states
 
     transitions = {}
 
@@ -498,7 +678,18 @@ def _build_W_buchi(a: Formula, b: Formula,
     return BuchiAutomaton(states, init, accepting, transitions, alphabet)
 
 def _build_TRUE_buchi(alphabet: set[frozenset[str]]) -> BuchiAutomaton:
-    """Automaton that accepts every infinite word (the language Σ^ω)."""
+    """Automaton that accepts every infinite word (the language Σ^ω).
+    
+    Parameters
+    ----------
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+    
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for the constant True formula.
+    """
     # One state that is both initial and accepting; self‑loops on all labels.
     state = "q"
     states = {state}
@@ -507,7 +698,18 @@ def _build_TRUE_buchi(alphabet: set[frozenset[str]]) -> BuchiAutomaton:
 
 
 def _build_FALSE_buchi(alphabet: set[frozenset[str]]) -> BuchiAutomaton:
-    """Automaton that accepts no word."""
+    """Automaton that accepts no word.
+    
+    Parameters
+    ----------
+    alphabet: set[frozenset[str]]
+        The alphabet of the automaton, i.e. the set of all possible labels.
+    
+    Returns
+    -------
+    BuchiAutomaton
+        The constructed Büchi automaton for the constant False formula.
+    """
     # One dead state that is *not* accepting.
     state = "dead"
     states = {state}
@@ -529,11 +731,11 @@ def _fallback_spot_builder(formula: Formula,
     converts the resulting HOA description into our ``BuchiAutomaton``.
     The function expects ``spot`` to be installed and reachable in $PATH.
     """
-    # 1️⃣  Convert our AST back to a string that Spot understands.
+    # [1] Convert our AST back to a string that Spot understands.
     #     The AST already has a ``to_string`` method that prints LTL syntax.
     ltl_str = formula.to_string()
 
-    # 2️⃣  Run Spot.  The ``-U`` flag asks for a *Büchi* (not generalized) automaton.
+    # [2] Run Spot.  The ``-U`` flag asks for a *Büchi* (not generalized) automaton.
     proc = subprocess.run(
         ["ltl2hoa", "-U", ltl_str],
         capture_output=True,
@@ -542,7 +744,7 @@ def _fallback_spot_builder(formula: Formula,
     )
     hoa = proc.stdout.splitlines()
 
-    # 3️⃣  Very small HOA parser (enough for our usage)
+    # [3] Very small HOA parser (enough for our usage)
     state_map: dict[int, str] = {}
     init_states: set[str] = set()
     accepting: set[str] = set()
@@ -603,8 +805,8 @@ def _fallback_spot_builder(formula: Formula,
     # Use the *same* alphabet that the caller gave us – it matches Spot's.
     return BuchiAutomaton(
         states=set(state_map.values()),
-        initial=next(iter(init_states)) if init_states else "q0",
-        accepting=accepting,
+        initial_state=next(iter(init_states)) if init_states else "q0",
+        accepting_states=accepting,
         transitions=transitions,
         alphabet=alphabet,
     )

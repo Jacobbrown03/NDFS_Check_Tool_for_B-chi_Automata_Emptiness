@@ -65,7 +65,7 @@ def label_for_ba(ts_label: Set[str], ba: BuchiAutomaton) -> FrozenSet[str]:
 # -------------------------------------------------------------------------
 def build_product(ts: TransitionSystem, ba: BuchiAutomaton) -> ProductAutomaton:
     """
-    Bread-first construction of the reachable part of the product
+    Breadth-first construction of the reachable part of the product
     automaton TS x BA.
     
     The product state is a tuple (ts_state, ba_state). A product state is
@@ -112,8 +112,8 @@ def build_product(ts: TransitionSystem, ba: BuchiAutomaton) -> ProductAutomaton:
     worklist: deque[ProductState] = deque(init_prod)
 
     while worklist:
-        cur_ts, cur_ba = worklist.popleft()
-        cur_prod = (cur_ts, cur_ba)
+        cur_prod = worklist.popleft()
+        cur_ts, cur_ba = cur_prod
 
         # Record acceptance as soon as we pop the state.
         if cur_ba in ba.accepting_states:
@@ -131,7 +131,7 @@ def build_product(ts: TransitionSystem, ba: BuchiAutomaton) -> ProductAutomaton:
                 prod_nxt = (ts_nxt, ba_nxt)
                 succs.add(prod_nxt)
 
-                # If this product state has never been seen, enqueu it.
+                # If this product state has never been seen, enqueue it.
                 if prod_nxt not in visited:
                     visited.add(prod_nxt)
                     worklist.append(prod_nxt)
@@ -139,7 +139,7 @@ def build_product(ts: TransitionSystem, ba: BuchiAutomaton) -> ProductAutomaton:
         trans[cur_prod] = succs
 
     # ---------------------------------------------------------------------
-    # [3] Return the fully build product automaton
+    # [3] Return the fully built product automaton
     # ---------------------------------------------------------------------
     return ProductAutomaton(
         states=visited,

@@ -24,16 +24,24 @@ from src.ast_nodes import (
 # Lexical Analysis
 # -------------------------------------------------------------------------
 def tokenize(text: str) -> list[str]:
-    # Convert a raw formula string into a list of tokens
+    """Convert a raw formula string into a list of tokens.
+    
+    Parameters
+    ----------
+    text: str
+        The raw formula string.
+        
+    Returns
+    -------
+    list[str]
+        The tokenized formula as a list of strings.
+    """
     spaced = (
         text.replace("(", " ( ")
         .replace(")", " ) ")
         .replace("&&", " && ")
         .replace("||", " || ")
         .replace("->", " -> ")
-        .replace("U", " U ")
-        .replace("R", " R ")
-        .replace("W", " W ")
         .replace("!" , " ! ")
         .replace("TRUE", " TRUE ")
         .replace("FALSE", " FALSE ")
@@ -45,7 +53,31 @@ def tokenize(text: str) -> list[str]:
 # Recursive-Descent Parser
 # -------------------------------------------------------------------------
 class Parser:
-    # Parses a token list into an AST using the precedence described above
+    """A recursive-descent parser for LTL formulas. The parsing methods are
+        organized according to operator precedence, with the lowest precedence
+        at the top and the highest at the bottom. The `parse` method serves as
+        the entry point, and it ensures that the entire token list is consumed.
+        The parser raises ValueError with informative messages when it encounters
+        unexpected tokens or end-of-input.
+        The resulting AST is built from the node classes defined in `src.ast_nodes`.
+        The supported syntax includes:
+        - Atomic propositions (any token that is not an operator or parenthesis)
+        - Boolean constants: TRUE, FALSE
+        - Unary operators: ! (negation), X (next), F (eventually), G (globally)
+        - Binary operators: && (and), || (or), -> (implies)
+        - Temporal binary operators: U (until), R (release), W (weak until)
+        - Parentheses for grouping
+        
+        Parameters
+        ----------
+        tokens: list[str]
+            The tokenized formula as a list of strings.
+            
+        Returns
+        -------
+        Formula
+            The parsed formula as an AST.
+        """
     def __init__(self,tokens: list[str]) -> None:
         self.tokens = tokens
         self.pos = 0
@@ -58,8 +90,6 @@ class Parser:
     
     def consume(self, expected: str | None = None) -> str:
         # Return the next token and advance the cursor.
-        # If `expected` is provided, a ValueError is raised when the next
-        # token does not match.
         token = self.peek()
         if token is None:
             raise ValueError("Unexpected end of formula")
@@ -73,10 +103,10 @@ class Parser:
         # Parse the whole token list and ensure no trailing tokens remain
         formula = self.parse_implies()
         if self.peek() is not None:
-            raise ValueError(f"Unexpected token: {self.peek()}")
+            raise ValueError(f"Unexpected token '{self.peek()}' at position {self.pos}")
         return formula
 
-    # Grammer Rules (ordered by precedence, highest at the bottom)
+    # Grammar Rules (ordered by precedence, highest at the bottom)
     def parse_implies(self) -> Formula:
         # Implication (->)
         left = self.parse_or()
@@ -97,17 +127,15 @@ class Parser:
     
     def parse_and(self) -> Formula:
         # Conjunction (&&)
-        left = self.parse_unary()
+        left = self.parse_temporal()
         while self.peek() == "&&":
             self.consume("&&")
-            right = self.parse_unary()
+            right = self.parse_temporal()
             left = And(left, right)
         return left
     
     def parse_temporal(self) -> Formula:
         # Temporal (unary ('U' | 'R' | 'W') Unary)
-        # The operators are 'right-associative':
-        #    a U b U c  ->  a U (b U c)
         
         left = self.parse_unary()
         while (tok := self.peek()) in ("U", "R", "W"):
@@ -119,6 +147,7 @@ class Parser:
                 left = Release(left, right)
             else:
                 left = WeakUntil(left, right)
+        return left
     
     def parse_unary(self) -> Formula:
         # unary ->
@@ -136,7 +165,7 @@ class Parser:
             return Not(self.parse_unary())
         
         # Temporal next
-        if tok =="X":
+        if tok == "X":
             self.consume("X")
             return X(self.parse_unary())
         
@@ -151,7 +180,7 @@ class Parser:
             return G(self.parse_unary())
         
         # Parenthesised sub-formula
-        if tok =="(":
+        if tok == "(":
             self.consume("(")
             inner = self.parse_implies()
             self.consume(")")
@@ -175,13 +204,35 @@ class Parser:
         return Atomic(tok)
 
 def parse_formula(text: str) -> Formula:
-    #Parse a single LTL formula given as a string.
+    """Parse a single LTL formula given as a string.
+    
+    Parameters
+    ----------
+    text: str
+        The raw formula string.
+        
+    Returns
+    -------
+    Formula
+        The parsed formula as an AST.
+    """
     tokens = tokenize(text)
     return Parser(tokens).parse()
 
 def load_formulas (path: str) -> list[Formula]:
-    # Read a file line-by-line and returna list of parsed LTL formulas.
-
+    """Read a file line-by-line and return a list of parsed LTL formulas.
+    
+    Parameters
+    ----------
+    path: str
+        Path to a LTL formula file. Lines starting with ``#`` are treated
+        as comments and ignored.
+        
+    Returns
+    -------
+    list[Formula]
+        A list of parsed LTL formulas.
+    """
     formulas: list[Formula] = []
     with open(path, "r", encoding="utf-8") as f:
         for raw in f:

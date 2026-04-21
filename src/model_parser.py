@@ -12,7 +12,7 @@ The file format (a smal custom DSL) is line-oriented
                           hold in state ``s`` (the label of ``s``)
 - Lines starting with ``#`` are comments and are ignored.
 
-The parser builds the five components required by ``TransitionSystem``:
+The parser builds the four components required by ``TransitionSystem``:
 states, transitions, initial_state and labels.
 """
 
@@ -95,6 +95,7 @@ def load_model(path: str) -> TransitionSystem:
     # ---------------------------------------------------------------------
     # [4] Fill missing entries so every state has a transition set and a
     #     label, even if they are empty.
+    # ---------------------------------------------------------------------
     for s in states:
         transitions.setdefault(s, set())
         labels.setdefault(s, set())

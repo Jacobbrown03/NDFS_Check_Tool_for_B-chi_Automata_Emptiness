@@ -9,7 +9,7 @@ def print_result(
     result: NDFSResult,
 ) -> None:
     """
-    Print a concise, human-readable summay of a model-checking run.
+    Print a concise, human-readable summary of a model-checking run.
     
     Parameters
     ----------
@@ -27,9 +27,10 @@ def print_result(
     # ---------------------------------------------------------------------
     # [1] General Statistics
     # ---------------------------------------------------------------------
+    print("-" * 50)
     print(f"Original LTL          : {formula.to_string()}")
     print(f"Negated LTL           : {negated.to_string()}")
-    print(f"Büchi states          : {len(ba.states)}")
+    print(f"Buchi states          : {len(ba.states)}")
     print(f"Product states        : {len(product.states)}")
     print(f"Accepting product states: {len(product.accepting_states)}")
     
@@ -45,12 +46,7 @@ def print_result(
     # ---------------------------------------------------------------------
     # [3] Truth value of the original formula
     # ---------------------------------------------------------------------
-    if emptiness:
-        # No accepting SCC -> the negated formula has no model -> original holds
-        print("Original formula :", "HOLDS")
-    else:
-        # An accepting SCC provides a counter-example -> original does not hold
-        print("Original formula :", "DOES NOT HOLD")
+    print("Result:", "HOLDS (no counterexample)" if emptiness else "FAILS (counterexample found)")
 
 
     # ---------------------------------------------------------------------
@@ -67,7 +63,13 @@ def print_result(
     
     
 def print_TS(ts: TransitionSystem) -> None:
-    """Print the Transition System in a readable, section-wise format."""
+    """Print the Transition System in a readable, section-wise format.
+    
+    Parameters
+    ----------
+    ts: TransitionSystem
+        The transition system to be printed.
+    """
     print("# Adjacency List")
     for state in sorted(ts.states):
         print(f"{state} -> ", end="")
@@ -85,6 +87,11 @@ def print_buchi(ba: BuchiAutomaton) -> None:
     """
     Print a Buchi Automaton:
         states, initial/accepting states, alphabet, transitions.
+        
+    Parameters
+    ----------
+    ba: BuchiAutomaton
+        The Büchi automaton to be printed.
     """
     print("# Buchi Automaton")
     print("States:"," ".join(sorted(ba.states)))
@@ -94,11 +101,12 @@ def print_buchi(ba: BuchiAutomaton) -> None:
     # Render the alphabet as a set of propositions for each symbol.
     alphabet_str = " ".join(
         "{" + ", ".join(sorted(val)) + "}" if val else "{}"
-        for val in sorted(ba.alphabet)
+        for val in sorted(ba.alphabet, key=lambda x: sorted(x))
     )
     print("Alphabet:", alphabet_str)
     print("Transitions")
-    for (src, lab), dsts in ba.transitions.items():
+    for (src, lab) in sorted(ba.transitions):
+        dsts = ba.transitions[(src, lab)]
         lab_str = "{" + ", ".join(sorted(lab)) + "}" if lab else "{}"
         dst_str = " ".join(sorted(dsts))
         print(f"    ({src}, {lab_str}) -> {{ {dst_str} }}")
@@ -106,7 +114,13 @@ def print_buchi(ba: BuchiAutomaton) -> None:
     
     
 def print_product(product: ProductAutomaton) -> None:
-    """Print a product automaton in a compact adjacency-list representation."""
+    """Print a product automaton in a compact adjacency-list representation.
+    
+    Parameters
+    ----------
+    product: ProductAutomaton
+        The product automaton to be printed.
+    """
     print("# Product Automaton")
     print("States:")
     for state in sorted(product.states):
@@ -119,10 +133,10 @@ def print_product(product: ProductAutomaton) -> None:
         print(f"\t{state}")
 
     print("Transitions:")
-    for src, dsts in product.transitions.items():
-        #dst_str = " ".join(sorted(dsts))
+    for src in sorted(product.transitions):
+        dsts = product.transitions[src]
         print(f"  {src} -> ")
-        for state in dsts:
+        for state in sorted(dsts):
             print(f"\t{state}", end=" ")
         print()
     print()

@@ -135,7 +135,4 @@ def run_ndfs(product: ProductAutomaton) -> NDFSResult:
         witness_prefix=witness_prefix,
         witness_cycle=witness_cycle,
         visited_blue=visited_blue,
-        # ``visited_red`` is left empty on purpose - red visits are local
-        # to each accepting-state invocation and are not needed globally.
-        visited_red=set(),
     )
