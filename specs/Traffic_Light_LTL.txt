@@ -22,3 +22,16 @@ G (pedestrian_walk -> F button_off)
 # Group F, G (p -> X q): !G (p -> X p) -> F (p && X !q)
 G (green -> X yellow)
 G (red -> X (red || red_yellow))
+
+# Group G, BoolConst
+TRUE
+FALSE
+G TRUE
+F FALSE
+
+# Group H, Until
+(!pedestrian_walk) U (red && button_on)
+(button_off) U (green)
+
+# Group I, Release
+(button_off) R (!pedestrian_walk)
