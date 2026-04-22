@@ -233,12 +233,22 @@ def load_formulas (path: str) -> list[Formula]:
     list[Formula]
         A list of parsed LTL formulas.
     """
-    formulas: list[Formula] = []
+    formulas: list[tuple[str, Formula]] = []
     with open(path, "r", encoding="utf-8") as f:
         for raw in f:
             line = raw.strip()
+
             # Ignore comments and empty lines
             if not line or line.startswith("#"):
                 continue
-            formulas.append(parse_formula(line))
+
+            # Strip "f_n:" prefix if present
+            if ":" in line:
+                label, formula_part = line.split(":", 1)
+                label = label.strip()
+                line = formula_part.strip()
+            else:
+                label = None
+
+            formulas.append((label, parse_formula(line)))
     return formulas

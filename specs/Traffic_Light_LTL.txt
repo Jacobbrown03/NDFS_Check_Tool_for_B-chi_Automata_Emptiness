@@ -1,37 +1,37 @@
 # Group A, G p: !G p -> F !p
-G button_off
-G (green || button_off)
-G (red && stop)
-G (!red -> go)
-G (!(green && pedestrian_walk))
-G (!button_on -> !pedestrian_walk)
+f_1: G button_off
+f_2: G (green || button_off)
+f_3: G (red && stop)
+f_4: G (!red -> go)
+f_5: G (!(green && pedestrian_walk))
+f_6: G (!button_on -> !pedestrian_walk)
 
 # Group B, F p: !F p -> G !p
-F pedestrian_walk
+f_7: F pedestrian_walk
 
 # Group C, G (F p): !G(F p) -> F (G !p)
-G (F green)
+f_8: G (F green)
 
 # Group D, F (G p): !F (G p) -> G (F !p)
-F (G green)
+f_9: F (G green)
 
 # Group E, G(p -> F q): !G (p -> F q) -> F (p && G !q)
-G (button_on -> F pedestrian_walk)
-G (pedestrian_walk -> F button_off)
+f_10: G (button_on -> F pedestrian_walk)
+f_11: G (pedestrian_walk -> F button_off)
 
 # Group F, G (p -> X q): !G (p -> X p) -> F (p && X !q)
-G (green -> X yellow)
-G (red -> X (red || red_yellow))
+f_12: G (green -> X yellow)
+f_13: G (red -> X (red || red_yellow))
 
 # Group G, BoolConst
-TRUE
-FALSE
-G TRUE
-F FALSE
+f_14: TRUE
+f_15: FALSE
+f_16: G TRUE
+f_17: F FALSE
 
 # Group H, Until
-(!pedestrian_walk) U (red && button_on)
-(button_off) U (green)
+f_18: (!pedestrian_walk) U (red && button_on)
+f_19: (button_off) U (green)
 
 # Group I, Release
-(button_off) R (!pedestrian_walk)
+f_20: (button_off) R (!pedestrian_walk)
